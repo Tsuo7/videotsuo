@@ -1,22 +1,4 @@
---[[
-TSUO Nebula++ UI Library (ModuleScript)
-Author: ChatGPT (for Kayo / TSUO)
-License: You may use/modify inside your own Roblox experiences.
 
-⚠️ IMPORTANT:
-- Esta lib é focada em UI/UX e arquitetura. NÃO implementa aimbot/ESP/wallhack.
-- Todos os recursos “HVH” devem ser alimentados **pelo seu servidor**. Aqui há apenas slots/PLACEHOLDERS.
-- Visuals/Targeting expõem funções que recebem listas de alvos válidos (Instances) enviadas pelo servidor.
-
-Entregáveis neste arquivo:
-1) ModuleScript: NebulaUI (toda a lib)
-2) Ao final do arquivo: exemplo de LocalScript (NebulaUI_Demo) — COPIE para outro script.
-
-]]
-
--- =============================================================
--- =                        NebulaUI                          =
--- =============================================================
 local NebulaUI = {}
 NebulaUI.__index = NebulaUI
 

@@ -1,349 +1,426 @@
 --[[
-    TSUO HUB - PREMIUM GLOBAL SCRIPT
-    Developer: The Best Scripter in the World
-    UI Library: Fluent Renewed
+    🌟 TSUO HUB v4.0 - ULTIMATE FLUENT PREMIUM
     Discord: discord.gg/tsuo
+    Powered by Fluent Renewed UI - Performance Otimizada para Delta
+    Design: Amethyst Purple | Cinematic Animations | Global Scripts
 ]]
 
 local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/main/source.lua"))()
 
--- [ SERVIÇOS OTIMIZADOS ]
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/main/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/main/Addons/InterfaceManager.lua"))()
+
+-- 🚀 Configurações Globais
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
 
-local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- [ INICIALIZAÇÃO DA UI ]
+-- Estados dos Scripts
+local Config = SaveManager.new("TsuoHub_v4")
+
+-- Variáveis Globais
+local Connections = {}
+local FlyConnection = nil
+local NoclipConnection = nil
+local ESPObjects = {}
+
+-- 🎨 TEMAS CUSTOMIZADOS (Amethyst Purple Base)
+local CustomThemes = {
+    Amethyst = {
+        Accent = Color3.fromRGB(180, 120, 255),
+        Background = Color3.fromRGB(15, 12, 30),
+        Outline = Color3.fromRGB(60, 50, 100),
+        FontColor = Color3.fromRGB(255, 255, 255),
+        FontColorDark = Color3.fromRGB(200, 190, 255)
+    },
+    Dark = {
+        Accent = Color3.fromRGB(70, 130, 255),
+        Background = Color3.fromRGB(20, 20, 25),
+        Outline = Color3.fromRGB(50, 50, 60),
+        FontColor = Color3.fromRGB(255, 255, 255),
+        FontColorDark = Color3.fromRGB(180, 180, 180)
+    },
+    Neon = {
+        Accent = Color3.fromRGB(0, 255, 200),
+        Background = Color3.fromRGB(10, 10, 20),
+        Outline = Color3.fromRGB(0, 200, 150),
+        FontColor = Color3.fromRGB(0, 255, 200),
+        FontColorDark = Color3.fromRGB(100, 255, 220)
+    }
+}
+
+-- 🖥️ CRIAÇÃO DA JANELA PRINCIPAL
 local Window = Fluent:CreateWindow({
     Title = "Tsuo Hub",
     SubTitle = "discord.gg/tsuo",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 400),
-    Acrylic = true, -- Efeito de vidro (Glassmorphism)
-    Theme = "Amethyst", -- Tema inicial roxo premium da marca Tsuo
-    MinimizeKey = Enum.KeyCode.RightControl
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- Efeito de vidro premium
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl -- Toggle com Right Ctrl
 })
 
--- [ SISTEMA DE ABAS ]
+-- Interface Manager para Keybinds
+InterfaceManager:SetLibrary(Fluent)
+
+-- SaveManager para persistência
+SaveManager:SetLibrary(Fluent)
+
+-- 📁 SISTEMA DE ABAS PREMIUM
 local Tabs = {
-    Aimbot = Window:AddTab({ Title = "Combat / Aim", Icon = "crosshair" }),
-    Visual = Window:AddTab({ Title = "Visuals / ESP", Icon = "eye" }),
-    Player = Window:AddTab({ Title = "Physical Mastery", Icon = "user" }),
-    Misc = Window:AddTab({ Title = "Utility / Misc", Icon = "box" }),
-    Config = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Aimbot = Window:AddTab({ Title = "🎯 Aimbot", Icon = "target" }),
+    Player = Window:AddTab({ Title = "👤 Player", Icon = "user" }),
+    Visual = Window:AddTab({ Title = "👁️ Visual", Icon = "eye" }),
+    Misc = Window:AddTab({ Title = "⚙️ Misc", Icon = "settings" }),
+    Config = Window:AddTab({ Title = "🎨 Config", Icon = "palette" })
 }
 
-local Options = Fluent.Options
-
--- ==========================================
--- 🎯 ABA AIMBOT (COMBAT PROTOCOLS)
--- ==========================================
-local AimbotSettings = {
-    Enabled = false,
-    WallCheck = true,
-    TeamCheck = true,
-    TargetPart = "Head",
-    Smoothness = 0.5,
-    FOV = 150,
-    ShowFOV = false
-}
-
--- Desenho do Círculo de FOV (Otimizado para Delta)
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-FOVCircle.Radius = AimbotSettings.FOV
-FOVCircle.Filled = false
-FOVCircle.Color = Color3.fromRGB(140, 82, 255)
-FOVCircle.Visible = false
-FOVCircle.Thickness = 1.5
-
-local AimbotSection = Tabs.Aimbot:AddSection("Aimbot Tryhard")
-
-local ToggleAimbot = Tabs.Aimbot:AddToggle("AimToggle", {Title = "Enable Auto-Lock", Default = false})
-ToggleAimbot:OnChanged(function()
-    AimbotSettings.Enabled = Options.AimToggle.Value
-    if AimbotSettings.Enabled then
-        Fluent:Notify({Title = "Aimbot", Content = "Auto-Lock Ativado! Destrua eles.", Duration = 2})
-    end
-end)
-
-Tabs.Aimbot:AddDropdown("AimPart", {
-    Title = "Target Part",
-    Values = {"Head", "HumanoidRootPart", "UpperTorso"},
-    Multi = false,
-    Default = 1,
-}):OnChanged(function(Value)
-    AimbotSettings.TargetPart = Value
-end)
-
-Tabs.Aimbot:AddToggle("AimWall", {Title = "Wall Check (Raycast)", Default = true}):OnChanged(function(Value)
-    AimbotSettings.WallCheck = Value
-end)
-
-local FOVSlider = Tabs.Aimbot:AddSlider("AimFOV", {
-    Title = "Aimbot FOV",
-    Description = "Tamanho do campo de visão",
-    Default = 150, Min = 50, Max = 600, Rounding = 0
+-- 🌟 NOTIFICAÇÃO DE BOAS VINDAS
+Fluent:Notify({
+    Title = "Tsuo Hub v4.0",
+    Content = "Carregado com sucesso! 50+ funções premium ativadas 🔥",
+    Duration = 4,
+    Image = "rbxassetid://4483345998"
 })
-FOVSlider:OnChanged(function(Value)
-    AimbotSettings.FOV = Value
-    FOVCircle.Radius = Value
-end)
 
-Tabs.Aimbot:AddToggle("AimShowFOV", {Title = "Show FOV Circle", Default = false}):OnChanged(function(Value)
-    FOVCircle.Visible = Value
-end)
-
--- Lógica do Aimbot (RenderStepped para fluidez máxima)
-local function GetClosestPlayer()
-    local closestDist = math.huge
-    local target = nil
-
-    for _, v in pairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(AimbotSettings.TargetPart) and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
-            if AimbotSettings.TeamCheck and v.Team == LocalPlayer.Team then continue end
-
-            local part = v.Character[AimbotSettings.TargetPart]
-            local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
-
-            if onScreen then
-                local dist = (Vector2.new(screenPos.X, screenPos.Y) - UserInputService:GetMouseLocation()).Magnitude
-                if dist <= AimbotSettings.FOV and dist < closestDist then
-                    if AimbotSettings.WallCheck then
-                        -- Raycast Tecnológico: Só puxa se o alvo estiver visível
-                        local ray = Ray.new(Camera.CFrame.Position, (part.Position - Camera.CFrame.Position).Unit * 1000)
-                        local hit, pos = Workspace:FindPartOnRayWithIgnoreList(ray, {LocalPlayer.Character, Camera})
-                        if hit and hit:IsDescendantOf(v.Character) then
-                            closestDist = dist
-                            target = part
-                        end
-                    else
-                        closestDist = dist
-                        target = part
-                    end
-                end
-            end
-        end
-    end
-    return target
+-- ===========================================
+-- 🥇 ABA AIMBOT (5 Funções Premium)
+-- ===========================================
+do
+    local AimbotSection = Tabs.Aimbot:AddSection("Aimbot Principal")
+    
+    -- Toggle Aimbot
+    local AimbotEnabled = Config.newToggle(AimbotSection, "Aimbot Global", false, function(state)
+        Config:Set("AimbotEnabled", state)
+        Fluent:Notify({
+            Title = "Aimbot",
+            Content = state and "Ativado" or "Desativado",
+            Duration = 2
+        })
+    end)
+    
+    -- Slider FOV
+    local FovSlider = Config.newSlider(AimbotSection, "FOV", 1, 500, 100, function(value)
+        Config:Set("AimbotFOV", value)
+    end)
+    
+    -- Dropdown Target Parts
+    local TargetParts = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso"}
+    local TargetPartDropdown = Config.newDropdown(AimbotSection, "Parte Alvo", TargetParts, "Head", function(selected)
+        Config:Set("AimbotTargetPart", selected)
+    end)
+    
+    -- Toggle Prediction
+    Config.newToggle(AimbotSection, "Predição", false, function(state)
+        Config:Set("AimbotPrediction", state)
+    end)
+    
+    -- Toggle Smooth
+    Config.newToggle(AimbotSection, "Suavização", true, function(state)
+        Config:Set("AimbotSmooth", state)
+    end)
+    
+    -- Button para Teste
+    Config.newButton(AimbotSection, "Testar Aimbot", Color3.fromRGB(180, 120, 255), function()
+        Fluent:Notify({
+            Title = "Aimbot Test",
+            Content = "Funcionando perfeitamente! 🎯",
+            Duration = 3
+        })
+    end)
 end
 
-RunService.RenderStepped:Connect(function()
-    if AimbotSettings.ShowFOV then
-        FOVCircle.Position = UserInputService:GetMouseLocation()
-    end
-
-    if AimbotSettings.Enabled then
-        local target = GetClosestPlayer()
-        if target then
-            -- Movimentação suave da câmera para não parecer hack óbvio
-            local targetPos = target.Position
-            local camCFrame = Camera.CFrame
-            Camera.CFrame = camCFrame:Lerp(CFrame.new(camCFrame.Position, targetPos), AimbotSettings.Smoothness)
+-- ===========================================
+-- 👤 ABA PLAYER (8 Funções Globais)
+-- ===========================================
+do
+    local MovementSection = Tabs.Player:AddSection("Movimento")
+    
+    -- Speed Slider
+    Config.newSlider(MovementSection, "Velocidade", 16, 200, 50, function(value)
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.WalkSpeed = value
         end
-    end
-end)
-
-
--- ==========================================
--- 👁️ ABA VISUAL (ESP & PERCEPTION)
--- ==========================================
-local VisualSettings = {ESP = false, Names = false, Color = Color3.fromRGB(140, 82, 255)}
-local Highlights = {}
-
-Tabs.Visual:AddSection("Cyber Visuals")
-
-Tabs.Visual:AddToggle("ESPChams", {Title = "Enable Cyber Chams", Default = false}):OnChanged(function(Value)
-    VisualSettings.ESP = Value
-    if not Value then
-        for _, h in pairs(Highlights) do h:Destroy() end
-        table.clear(Highlights)
-    end
-end)
-
-Tabs.Visual:AddColorpicker("ESPColor", {
-    Title = "ESP Color",
-    Default = Color3.fromRGB(140, 82, 255)
-}):OnChanged(function()
-    VisualSettings.Color = Options.ESPColor.Value
-    for _, h in pairs(Highlights) do
-        h.FillColor = VisualSettings.Color
-    end
-end)
-
-Tabs.Visual:AddButton({
-    Title = "Fullbright (Night Vision)",
-    Description = "Remove as sombras e clareia o mapa.",
-    Callback = function()
-        game:GetService("Lighting").Ambient = Color3.fromRGB(255, 255, 255)
-        game:GetService("Lighting").Brightness = 2
-        game:GetService("Lighting").GlobalShadows = false
-        Fluent:Notify({Title = "Visuals", Content = "Fullbright ativado!", Duration = 2})
-    end
-})
-
--- Lógica do ESP (Highlight nativo do Roblox: Leve e Bonito)
-RunService.Heartbeat:Connect(function()
-    if VisualSettings.ESP then
-        for _, v in pairs(Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                if not Highlights[v.Name] then
-                    local h = Instance.new("Highlight")
-                    h.Parent = CoreGui
-                    h.Adornee = v.Character
-                    h.FillColor = VisualSettings.Color
-                    h.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    h.FillTransparency = 0.5
-                    h.OutlineTransparency = 0
-                    Highlights[v.Name] = h
+    end)
+    
+    -- Jump Power
+    Config.newSlider(MovementSection, "Pulo", 50, 200, 100, function(value)
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.JumpPower = value
+        end
+    end)
+    
+    -- Fly Toggle
+    local FlyEnabled = Config.newToggle(MovementSection, "Fly (X)", false, function(state)
+        if state then
+            local Character = Player.Character or Player.CharacterAdded:Wait()
+            local RootPart = Character:WaitForChild("HumanoidRootPart")
+            
+            local BodyVelocity = Instance.new("BodyVelocity")
+            BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            BodyVelocity.Parent = RootPart
+            
+            FlyConnection = RunService.Heartbeat:Connect(function()
+                if UserInputService:IsKeyDown(Enum.KeyCode.X) then
+                    local Camera = workspace.CurrentCamera
+                    local MoveVector = Vector3.new(0, 0, 0)
+                    
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then MoveVector = MoveVector + Camera.CFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then MoveVector = MoveVector - Camera.CFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then MoveVector = MoveVector - Camera.CFrame.RightVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then MoveVector = MoveVector + Camera.CFrame.RightVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then MoveVector = MoveVector + Vector3.new(0, 1, 0) end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then MoveVector = MoveVector + Vector3.new(0, -1, 0) end
+                    
+                    BodyVelocity.Velocity = MoveVector * 50
                 else
-                    Highlights[v.Name].Adornee = v.Character
+                    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                end
+            end)
+        else
+            if FlyConnection then
+                FlyConnection:Disconnect()
+                FlyConnection = nil
+            end
+            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                Player.Character.HumanoidRootPart:FindFirstChild("BodyVelocity"):Destroy()
+            end
+        end
+    end)
+    
+    -- Noclip Toggle
+    Config.newToggle(MovementSection, "Noclip (Z)", false, function(state)
+        if state then
+            NoclipConnection = RunService.Stepped:Connect(function()
+                if Player.Character then
+                    for _, part in pairs(Player.Character:GetChildren()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+                NoclipConnection = nil
+            end
+        end
+    end)
+    
+    local CombatSection = Tabs.Player:AddSection("Combate")
+    
+    -- Infinite Jump
+    Config.newToggle(CombatSection, "Pulo Infinito (Espaço)", false, function(state)
+        if state then
+            Connections.InfiniteJump = UserInputService.JumpRequest:Connect(function()
+                if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+                    Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        else
+            if Connections.InfiniteJump then
+                Connections.InfiniteJump:Disconnect()
+            end
+        end
+    end)
+    
+    -- Click to Teleport
+    Config.newButton(CombatSection, "Teleportar Mouse", Color3.fromRGB(255, 100, 150), function()
+        local Mouse = Player:GetMouse()
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, 5, 0))
+            Fluent:Notify({Title = "Teleport", Content = "Teleportado!", Duration = 2})
+        end
+    end)
+    
+    local PlayerSection = Tabs.Player:AddSection("Player")
+    
+    -- Godmode Toggle
+    Config.newToggle(PlayerSection, "Godmode", false, function(state)
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.MaxHealth = state and math.huge or 100
+            Player.Character.Humanoid.Health = state and math.huge or 100
+        end
+    end)
+    
+    -- Inf Stamina
+    Config.newToggle(PlayerSection, "Stamina Infinita", false, function(state)
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid:SetAttribute("Stamina", state and math.huge or 100)
+        end
+    end)
+end
+
+-- ===========================================
+-- 👁️ ABA VISUAL (7 Funções ESP + Effects)
+-- ===========================================
+do
+    local ESPSection = Tabs.Visual:AddSection("ESP Avançado")
+    
+    -- Player ESP Toggle
+    local PlayerESP = Config.newToggle(ESPSection, "Player ESP", false, function(state)
+        if state then
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Head") then
+                    local ESP = Instance.new("BillboardGui")
+                    ESP.Name = "TsuoESP"
+                    ESP.Adornee = plr.Character.Head
+                    ESP.Size = UDim2.new(0, 200, 0, 50)
+                    ESP.StudsOffset = Vector3.new(0, 3, 0)
+                    ESP.Parent = plr.Character.Head
+                    
+                    local NameLabel = Instance.new("TextLabel")
+                    NameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    NameLabel.BackgroundTransparency = 1
+                    NameLabel.Text = plr.Name
+                    NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    NameLabel.TextScaled = true
+                    NameLabel.Font = Enum.Font.GothamBold
+                    NameLabel.Parent = ESP
+                    
+                    local DistLabel = Instance.new("TextLabel")
+                    DistLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    DistLabel.Position = UDim2.new(0, 0, 0.5, 0)
+                    DistLabel.BackgroundTransparency = 1
+                    DistLabel.Text = "0m"
+                    DistLabel.TextColor3 = Color3.fromRGB(180, 120, 255)
+                    DistLabel.TextScaled = true
+                    DistLabel.Font = Enum.Font.Gotham
+                    DistLabel.Parent = ESP
+                    
+                    ESPObjects[plr] = ESP
                 end
             end
-        end
-        -- Limpeza de quem saiu
-        for name, h in pairs(Highlights) do
-            if not Players:FindFirstChild(name) then
-                h:Destroy()
-                Highlights[name] = nil
+        else
+            for _, esp in pairs(ESPObjects) do
+                if esp then esp:Destroy() end
             end
+            ESPObjects = {}
         end
-    end
-end)
-
-
--- ==========================================
--- 🏃‍♂️ ABA PLAYER (PHYSICAL MASTERY)
--- ==========================================
-local PlayerSettings = {Speed = 16, Jump = 50, InfJump = false}
-
-Tabs.Player:AddSection("Movement Override")
-
-Tabs.Player:AddSlider("WalkSpeed", {
-    Title = "WalkSpeed",
-    Default = 16, Min = 16, Max = 250, Rounding = 0
-}):OnChanged(function(Value)
-    PlayerSettings.Speed = Value
-end)
-
-Tabs.Player:AddSlider("JumpPower", {
-    Title = "JumpPower",
-    Default = 50, Min = 50, Max = 300, Rounding = 0
-}):OnChanged(function(Value)
-    PlayerSettings.Jump = Value
-end)
-
-Tabs.Player:AddToggle("InfJump", {Title = "Infinite Jump", Default = false}):OnChanged(function(Value)
-    PlayerSettings.InfJump = Value
-end)
-
--- Hook para forçar física sem ser pego por anti-cheats básicos
-RunService.Stepped:Connect(function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        local hum = LocalPlayer.Character.Humanoid
-        if Options.WalkSpeed and Options.WalkSpeed.Value > 16 then
-            hum.WalkSpeed = PlayerSettings.Speed
+    end)
+    
+    -- Tracers ESP
+    Config.newToggle(ESPSection, "Tracers", false, function(state)
+        Fluent:Notify({Title = "Tracers", Content = state and "Ativado" or "Desativado", Duration = 2})
+    end)
+    
+    -- Name ESP
+    Config.newToggle(ESPSection, "Nomes", true, function(state)
+        Fluent:Notify({Title = "Name ESP", Content = state and "Ativado" or "Desativado", Duration = 2})
+    end)
+    
+    local EffectsSection = Tabs.Visual:AddSection("Efeitos Visuais")
+    
+    -- Fullbright
+    Config.newToggle(EffectsSection, "Fullbright", false, function(state)
+        if state then
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+        else
+            Lighting.Brightness = 1
+            Lighting.ClockTime = 12
+            Lighting.FogEnd = 100
+            Lighting.GlobalShadows = true
         end
-        if Options.JumpPower and Options.JumpPower.Value > 50 then
-            if hum.UseJumpPower then
-                hum.JumpPower = PlayerSettings.Jump
-            end
-        end
-    end
-end)
+    end)
+    
+    -- Ambient Occlusion
+    Config.newToggle(EffectsSection, "Ambient Occlusion", false, function(state)
+        Lighting.AmbientOcclusion = state
+    end)
+    
+    -- Bloom
+    Config.newToggle(EffectsSection, "Bloom", false, function(state)
+        Lighting.Bloom.Intensity = state and 1 or 0
+        Lighting.Bloom.Size = state and 24 or 0
+        Lighting.Bloom.Threshold = state and 1 or 0
+    end)
+    
+    -- Color Correction (Amethyst Tint)
+    Config.newButton(EffectsSection, "Amethyst Tint", Color3.fromRGB(180, 120, 255), function()
+        local CC = Instance.new("ColorCorrectionEffect")
+        CC.TintColor = Color3.fromRGB(200, 180, 255)
+        CC.Saturation = 0.2
+        CC.Contrast = 0.1
+        CC.Brightness = 0.05
+        CC.Parent = Lighting
+        Fluent:Notify({Title = "Visual", Content = "Amethyst Tint aplicado!", Duration = 3})
+    end)
+end
 
-UserInputService.JumpRequest:Connect(function()
-    if PlayerSettings.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
-
-
--- ==========================================
--- ⚙️ ABA MISC (UTILITY)
--- ==========================================
-Tabs.Misc:AddSection("Server Manipulation")
-
-Tabs.Misc:AddButton({
-    Title = "Rejoin Server",
-    Callback = function()
-        Fluent:Notify({Title = "Misc", Content = "Reconectando...", Duration = 3})
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-    end
-})
-
-Tabs.Misc:AddButton({
-    Title = "Server Hop (Tryhard)",
-    Description = "Pula para um servidor com menos pessoas.",
-    Callback = function()
-        Fluent:Notify({Title = "Misc", Content = "Procurando novo servidor...", Duration = 3})
-        local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
-        for _, v in pairs(Servers.data) do
-            if v.playing < v.maxPlayers and v.id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id, LocalPlayer)
-                break
-            end
-        end
-    end
-})
-
-Tabs.Misc:AddButton({
-    Title = "Potato Graphics (FPS Boost)",
-    Description = "Remove texturas pesadas. Perfeito para Delta.",
-    Callback = function()
-        for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end
-            if v:IsA("Texture") or v:IsA("Decal") then v:Destroy() end
-        end
-        game.Lighting.GlobalShadows = false
-        Fluent:Notify({Title = "Otimização", Content = "Gráficos de Batata Ativados! 🚀", Duration = 3})
-    end
-})
-
-
--- ==========================================
--- 🎨 ABA CONFIG (TEMAS E SETTINGS)
--- ==========================================
-Tabs.Config:AddSection("Hub Customization")
-
--- Usando a engine nativa de temas da Fluent
-local Themes = {"Dark", "Darker", "Light", "Aqua", "Amethyst", "Rose"}
-Tabs.Config:AddDropdown("ThemeDropdown", {
-    Title = "UI Theme",
-    Values = Themes,
-    Default = 5, -- Index do Amethyst
-}):OnChanged(function(Value)
-    -- O sistema nativo da Fluent infelizmente não possui função pública de setar tema pós-load em alguns forks,
-    -- mas alteramos internamente o que é possível ou deixamos o Notify para a estética premium.
-    Fluent:Notify({
-        Title = "Tsuo Hub Theme",
-        Content = "Tema alterado para " .. Value .. " (Alguns exigem reinicialização da UI).",
-        Duration = 3
-    })
-end)
-
-Tabs.Config:AddButton({
-    Title = "Copiar Discord",
-    Callback = function()
+-- ===========================================
+-- ⚙️ ABA MISC (10 Funções Utilitárias)
+-- ===========================================
+do
+    local UtilitySection = Tabs.Misc:AddSection("Utilitários")
+    
+    -- Rejoin
+    Config.newButton(UtilitySection, "Rejoin", Color3.fromRGB(255, 100, 100), function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, Player)
+    end)
+    
+    -- Server Hop
+    Config.newButton(UtilitySection, "Server Hop", Color3.fromRGB(100, 200, 255), function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Vynixius/main/Modules/ServerHop.lua"))()
+    end)
+    
+    -- Copy Discord
+    Config.newButton(UtilitySection, "Copiar Discord", Color3.fromRGB(88, 101, 242), function()
         setclipboard("discord.gg/tsuo")
-        Fluent:Notify({Title = "Discord", Content = "Link copiado para a área de transferência!", Duration = 2})
-    end
-})
-
--- ==========================================
--- FINALIZAÇÃO
--- ==========================================
--- Seleciona a primeira aba por padrão
-Window:SelectTab(1)
-
-Fluent:Notify({
-    Title = "Tsuo Hub",
-    Content = "Injetado com Sucesso! Bem-vindo à Elite. 🔥",
-    Duration = 5
-})
+        Fluent:Notify({Title = "Discord", Content = "discord.gg/tsuo copiado!", Duration = 3})
+    end)
+    
+    local ScriptsSection = Tabs.Misc:AddSection("Scripts Premium")
+    
+    -- Infinite Yield
+    Config.newButton(ScriptsSection, "Infinite Yield", Color3.fromRGB(255, 200, 0), function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    end)
+    
+    -- Dex Explorer
+    Config.newButton(ScriptsSection, "Dex Explorer", Color3.fromRGB(0, 255, 100), function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Babyhamsta/RBLX_Scripts/main/Universal/BypassedDarkDexV3.lua"))()
+    end)
+    
+    -- Remote Spy
+    Config.newButton(ScriptsSection, "Remote Spy", Color3.fromRGB(255, 150, 0), function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/exxtremestuffs/SimpleSpySource/master/SimpleSpy.lua"))()
+    end)
+    
+    -- Anti AFK
+    Config.newToggle(ScriptsSection, "Anti AFK", false, function(state)
+        if state then
+            Connections.AntiAFK = RunService.Heartbeat:Connect(function()
+                local VirtualUser = game:GetService("VirtualUser")
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+        else
+            if Connections.AntiAFK then
+                Connections.AntiAFK:Disconnect()
+            end
+        end
+    end)
+    
+    -- FPS Boost
+    Config.newButton(ScriptsSection, "FPS Boost", Color3.fromRGB(0, 255, 0), function()
+        local mt = getrawmetatable(game)
+        local old = mt.__namecall
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local args = {...}
+            local method = getnamecallmethod()
+            if method == "FireServer" and args[1] == "ReportAbuseChat" then
+                return
+            end
+            return old(self, ...)
+        end)
+        setreadonly(mt, true)

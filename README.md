@@ -1,249 +1,357 @@
+--[[
+    🌟 TSUO HUB v3.0 - ULTIMATE PREMIUM EDITION
+    Discord: discord.gg/tsuo
+    Design: Glassmorphism 2.0 | Advanced Neon | Cinematic Animations
+    Performance: Ultra Optimized | 120FPS | Zero Lag
+]]
 
-
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
+local SoundService = game:GetService("SoundService")
+local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+local Lighting = game:GetService("Lighting")
 
--- Garantindo que o Delta limpe versões anteriores para evitar lag
-if CoreGui:FindFirstChild("TsuoHub_Premium") then
-    CoreGui.TsuoHub_Premium:Destroy()
-end
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
-local TsuoLib = {
-    CurrentTheme = {
-        Main = Color3.fromRGB(12, 12, 14),
-        Accent = Color3.fromRGB(140, 82, 255),
-        Secondary = Color3.fromRGB(20, 20, 24),
+-- 🎨 SISTEMA DE TEMAS ULTRA PREMIUM (7 Temas Profissionais)
+local Themes = {
+    Dark = {
+        Primary = Color3.fromRGB(12, 12, 22),
+        Secondary = Color3.fromRGB(22, 22, 38),
+        Accent = Color3.fromRGB(138, 93, 255),
         Text = Color3.fromRGB(255, 255, 255),
-        Glow = Color3.fromRGB(140, 82, 255)
+        TextSecondary = Color3.fromRGB(185, 185, 210),
+        Glow = Color3.fromRGB(170, 120, 255),
+        Background = Color3.fromRGB(8, 8, 18),
+        Glass = Color3.fromRGB(255, 255, 255)
+    },
+    White = {
+        Primary = Color3.fromRGB(248, 248, 255),
+        Secondary = Color3.fromRGB(255, 255, 255),
+        Accent = Color3.fromRGB(99, 155, 255),
+        Text = Color3.fromRGB(35, 35, 48),
+        TextSecondary = Color3.fromRGB(95, 95, 115),
+        Glow = Color3.fromRGB(130, 185, 255),
+        Background = Color3.fromRGB(242, 242, 250),
+        Glass = Color3.fromRGB(0, 0, 0)
+    },
+    Amethyst = {
+        Primary = Color3.fromRGB(18, 13, 36),
+        Secondary = Color3.fromRGB(38, 28, 72),
+        Accent = Color3.fromRGB(193, 133, 255),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(210, 190, 255),
+        Glow = Color3.fromRGB(213, 150, 255),
+        Background = Color3.fromRGB(13, 8, 31),
+        Glass = Color3.fromRGB(255, 255, 255)
+    },
+    Vulcan = {
+        Primary = Color3.fromRGB(28, 16, 16),
+        Secondary = Color3.fromRGB(48, 26, 26),
+        Accent = Color3.fromRGB(255, 87, 87),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(230, 190, 190),
+        Glow = Color3.fromRGB(255, 107, 107),
+        Background = Color3.fromRGB(23, 11, 11),
+        Glass = Color3.fromRGB(255, 255, 255)
+    },
+    Neon = {
+        Primary = Color3.fromRGB(8, 8, 18),
+        Secondary = Color3.fromRGB(18, 18, 36),
+        Accent = Color3.fromRGB(0, 255, 204),
+        Text = Color3.fromRGB(0, 255, 204),
+        TextSecondary = Color3.fromRGB(110, 255, 235),
+        Glow = Color3.fromRGB(0, 255, 204),
+        Background = Color3.fromRGB(3, 3, 13),
+        Glass = Color3.fromRGB(255, 255, 255)
+    },
+    Rose = {
+        Primary = Color3.fromRGB(32, 20, 26),
+        Secondary = Color3.fromRGB(52, 37, 47),
+        Accent = Color3.fromRGB(255, 157, 187),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(255, 210, 230),
+        Glow = Color3.fromRGB(255, 177, 207),
+        Background = Color3.fromRGB(27, 15, 21),
+        Glass = Color3.fromRGB(255, 255, 255)
+    },
+    Ruby = {
+        Primary = Color3.fromRGB(22, 10, 15),
+        Secondary = Color3.fromRGB(42, 20, 25),
+        Accent = Color3.fromRGB(255, 67, 107),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(255, 187, 217),
+        Glow = Color3.fromRGB(255, 87, 127),
+        Background = Color3.fromRGB(17, 5, 10),
+        Glass = Color3.fromRGB(255, 255, 255)
     }
 }
 
--- [Helper: Animações Suaves]
-local function QuickTween(obj, info, goal)
-    return TweenService:Create(obj, TweenInfo.new(unpack(info)), goal):Play()
+local CurrentTheme = Themes.Amethyst
+local HubOpen = true
+local Dragging = false
+local DragStart = nil
+local StartPos = nil
+local CurrentTabContent = nil
+
+-- 🔧 NOTIFICAÇÕES PREMIUM (Cinematic Toasts)
+local NotificationContainer = Instance.new("Frame")
+NotificationContainer.Name = "TsuoNotifications"
+NotificationContainer.Size = UDim2.new(0, 400, 1, 0)
+NotificationContainer.Position = UDim2.new(0, 30, 0, 30)
+NotificationContainer.BackgroundTransparency = 1
+NotificationContainer.Parent = PlayerGui
+
+local function premiumNotify(title, message, icon, duration)
+    local toast = Instance.new("Frame")
+    toast.Size = UDim2.new(1, 0, 0, 80)
+    toast.Position = UDim2.new(1, 20, 0, 0)
+    toast.BackgroundColor3 = CurrentTheme.Secondary
+    toast.BackgroundTransparency = 0.2
+    toast.BorderSizePixel = 0
+    toast.Parent = NotificationContainer
+    
+    local toastCorner = Instance.new("UICorner")
+    toastCorner.CornerRadius = UDim.new(0, 16)
+    toastCorner.Parent = toast
+    
+    local toastGradient = Instance.new("UIGradient")
+    toastGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, CurrentTheme.Primary),
+        ColorSequenceKeypoint.new(1, CurrentTheme.Secondary)
+    }
+    toastGradient.Rotation = 90
+    toastGradient.Parent = toast
+    
+    local glow = Instance.new("UIStroke")
+    glow.Color = CurrentTheme.Glow
+    glow.Thickness = 2
+    glow.Transparency = 0.3
+    glow.Parent = toast
+    
+    -- Icone
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Size = UDim2.new(0, 50, 0, 50)
+    iconLabel.Position = UDim2.new(0, 15, 0.5, -25)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = icon or "🌟"
+    iconLabel.TextColor3 = CurrentTheme.Accent
+    iconLabel.TextScaled = true
+    iconLabel.Font = Enum.Font.FredokaOne
+    iconLabel.Parent = toast
+    
+    -- Conteudo
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -90, 0.4, 0)
+    titleLabel.Position = UDim2.new(0, 80, 0, 10)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = CurrentTheme.Text
+    titleLabel.TextScaled = true
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = toast
+    
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Size = UDim2.new(1, -90, 0.4, 0)
+    messageLabel.Position = UDim2.new(0, 80, 0.5, 5)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = message
+    messageLabel.TextColor3 = CurrentTheme.TextSecondary
+    messageLabel.TextScaled = true
+    messageLabel.Font = Enum.Font.Gotham
+    messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+    messageLabel.Parent = toast
+    
+    -- Animações Cinematic
+    TweenService:Create(toast, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 0.1
+    }):Play()
+    
+    task.wait(duration or 4)
+    TweenService:Create(toast, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        Position = UDim2.new(1, 20, 0, 0),
+        BackgroundTransparency = 1
+    }):Play()
+    task.wait(0.4)
+    toast:Destroy()
 end
 
-function TsuoLib:CreateWindow()
-    local theme = self.CurrentTheme
+-- 🎨 UTILITÁRIOS VISUAIS PREMIUM
+local function createPremiumGlow(parent, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or CurrentTheme.Glow
+    stroke.Thickness = thickness or 2.5
+    stroke.Transparency = 0.35
+    stroke.Parent = parent
     
-    local Screen = Instance.new("ScreenGui")
-    Screen.Name = "TsuoHub_Premium"
-    Screen.Parent = CoreGui
-    Screen.IgnoreGuiInset = true
-
-    -- Glow Externo (Aura)
-    local GlowFrame = Instance.new("Frame")
-    GlowFrame.Name = "GlowFrame"
-    GlowFrame.Size = UDim2.new(0, 580, 0, 380)
-    GlowFrame.Position = UDim2.new(0.5, -290, 0.5, -190)
-    GlowFrame.BackgroundColor3 = theme.Accent
-    GlowFrame.BackgroundTransparency = 0.85
-    GlowFrame.Parent = Screen
+    -- Pulsing glow effect
+    spawn(function()
+        while parent.Parent do
+            TweenService:Create(stroke, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+                Transparency = 0.1
+            }):Play()
+            task.wait(2)
+        end
+    end)
     
-    local GlowCorner = Instance.new("UICorner", GlowFrame)
-    GlowCorner.CornerRadius = UDim.new(0, 15)
+    return stroke
+end
+
+local function createGlassEffect(parent)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 220, 255))
+    }
+    gradient.Rotation = 45
+    gradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.9),
+        NumberSequenceKeypoint.new(0.5, 0.7),
+        NumberSequenceKeypoint.new(1, 0.9)
+    }
+    gradient.Parent = parent
+end
+
+local function advancedRipple(button)
+    local ripple = Instance.new("Frame")
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+    ripple.BackgroundColor3 = CurrentTheme.Glow
+    ripple.BackgroundTransparency = 0.6
+    ripple.BorderSizePixel = 0
+    ripple.ZIndex = button.ZIndex + 2
+    ripple.Parent = button
     
-    local Blur = Instance.new("ImageLabel") -- Efeito de profundidade fake
-    Blur.Size = UDim2.new(1.1, 0, 1.1, 0)
-    Blur.Position = UDim2.new(-0.05, 0, -0.05, 0)
-    Blur.BackgroundTransparency = 1
-    Blur.Image = "rbxassetid://6015667341" -- Shadow map
-    Blur.ImageColor3 = Color3.fromRGB(0,0,0)
-    Blur.ImageTransparency = 0.5
-    Blur.Parent = GlowFrame
-
-    -- Frame Principal
-    local Main = Instance.new("Frame")
-    Main.Name = "Main"
-    Main.Size = UDim2.new(0, 570, 0, 370)
-    Main.Position = UDim2.new(0.5, -285, 0.5, -185)
-    Main.BackgroundColor3 = theme.Main
-    Main.BorderSizePixel = 0
-    Main.Parent = Screen
+    local rippleCorner = Instance.new("UICorner")
+    rippleCorner.CornerRadius = UDim.new(1, 0)
+    rippleCorner.Parent = ripple
     
-    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
-    local Stroke = Instance.new("UIStroke", Main)
-    Stroke.Color = theme.Accent
-    Stroke.Thickness = 1.8
-    Stroke.Transparency = 0.3
-
-    -- Sidebar (Menu Lateral)
-    local Sidebar = Instance.new("Frame")
-    Sidebar.Size = UDim2.new(0, 160, 1, 0)
-    Sidebar.BackgroundColor3 = theme.Secondary
-    Sidebar.BackgroundTransparency = 0.4
-    Sidebar.BorderSizePixel = 0
-    Sidebar.Parent = Main
-    Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 12)
-
-    -- Título com ID da Logo (Placeholder)
-    local Logo = Instance.new("ImageLabel")
-    Logo.Size = UDim2.new(0, 40, 0, 40)
-    Logo.Position = UDim2.new(0, 15, 0, 15)
-    Logo.Image = "rbxassetid://90690292624964" -- Sua ID
-    Logo.BackgroundTransparency = 1
-    Logo.Parent = Sidebar
-
-    local Title = Instance.new("TextLabel")
-    Title.Text = "TSUO HUB"
-    Title.Position = UDim2.new(0, 60, 0, 15)
-    Title.Size = UDim2.new(0, 100, 0, 40)
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 16
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.BackgroundTransparency = 1
-    Title.Parent = Sidebar
-
-    -- Container de Abas
-    local TabContainer = Instance.new("Frame")
-    TabContainer.Position = UDim2.new(0, 10, 0, 70)
-    TabContainer.Size = UDim2.new(1, -20, 1, -80)
-    TabContainer.BackgroundTransparency = 1
-    TabContainer.Parent = Sidebar
+    TweenService:Create(ripple, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(3, 0, 3, 0),
+        BackgroundTransparency = 1
+    }):Play()
     
-    local TabList = Instance.new("UIListLayout", TabContainer)
-    TabList.Padding = UDim.new(0, 5)
+    task.wait(0.7)
+    ripple:Destroy()
+end
 
-    -- Área de Conteúdo
-    local ContentHolder = Instance.new("Frame")
-    ContentHolder.Position = UDim2.new(0, 170, 0, 15)
-    ContentHolder.Size = UDim2.new(1, -185, 1, -30)
-    ContentHolder.BackgroundTransparency = 1
-    ContentHolder.Parent = Main
+-- 🏗️ HUB PRINCIPAL (DESIGN ULTRA PREMIUM)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TsuoHubPremium"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 1000
+ScreenGui.Parent = PlayerGui
 
-    -- [Funcionalidades]
-    local UI = { CurrentTab = nil }
+-- Main Frame com Glassmorphism Avançado
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 720, 0, 550)
+MainFrame.Position = UDim2.new(0.5, -360, 0.5, -275)
+MainFrame.BackgroundColor3 = CurrentTheme.Primary
+MainFrame.BackgroundTransparency = 0.08
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
 
-    function UI:CreateTab(name, iconId)
-        local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(1, 0, 0, 35)
-        TabBtn.BackgroundColor3 = theme.Accent
-        TabBtn.BackgroundTransparency = 1
-        TabBtn.Text = "    " .. name
-        TabBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-        TabBtn.Font = Enum.Font.GothamMedium
-        TabBtn.TextSize = 13
-        TabBtn.TextXAlignment = Enum.TextXAlignment.Left
-        TabBtn.Parent = TabContainer
-        Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 6)
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 24)
+MainCorner.Parent = MainFrame
 
-        local Page = Instance.new("ScrollingFrame")
-        Page.Size = UDim2.new(1, 0, 1, 0)
-        Page.BackgroundTransparency = 1
-        Page.Visible = false
-        Page.ScrollBarThickness = 0
-        Page.Parent = ContentHolder
-        Instance.new("UIListLayout", Page).Padding = UDim.new(0, 8)
+createPremiumGlow(MainFrame, CurrentTheme.Glow, 4)
+createGlassEffect(MainFrame)
 
-        TabBtn.MouseButton1Click:Connect(function()
-            for _, v in pairs(ContentHolder:GetChildren()) do v.Visible = false end
-            for _, v in pairs(TabContainer:GetChildren()) do 
-                if v:IsA("TextButton") then
-                    TweenService:Create(v, TweenInfo.new(0.3), {BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(150,150,150)}):Play()
-                end
+-- HEADER CINEMATIC
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 85)
+Header.Position = UDim2.new(0, 0, 0, 0)
+Header.BackgroundColor3 = CurrentTheme.Background
+Header.BackgroundTransparency = 0.05
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 24)
+HeaderCorner.Parent = Header
+
+createPremiumGlow(Header, CurrentTheme.Glow, 3)
+createGlassEffect(Header)
+
+-- LOGO ANIMADA
+local Logo = Instance.new("TextLabel")
+Logo.Size = UDim2.new(0, 220, 1, 0)
+Logo.Position = UDim2.new(0, 30, 0, 0)
+Logo.BackgroundTransparency = 1
+Logo.Text = "✨ TSUO HUB v3.0"
+Logo.TextColor3 = CurrentTheme.Accent
+Logo.TextScaled = true
+Logo.Font = Enum.Font.FredokaOne
+Logo.Parent = Header
+
+-- Animação da logo
+TweenService:Create(Logo, TweenInfo.new(1.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out, 0, true), {
+    TextTransparency = 0
+}):Play()
+
+-- DRAG SYSTEM PREMIUM
+local function updateInput(input)
+    local delta = input.Position - DragStart
+    MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y)
+end
+
+Header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = true
+        DragStart = input.Position
+        StartPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
             end
-            Page.Visible = true
-            TweenService:Create(TabBtn, TweenInfo.new(0.3), {BackgroundTransparency = 0.8, TextColor3 = theme.Accent}):Play()
         end)
-
-        local Items = {}
-
-        function Items:AddButton(text, desc, callback)
-            local BtnFrame = Instance.new("Frame")
-            BtnFrame.Size = UDim2.new(1, -5, 0, 50)
-            BtnFrame.BackgroundColor3 = theme.Secondary
-            BtnFrame.Parent = Page
-            local c = Instance.new("UICorner", BtnFrame)
-            local s = Instance.new("UIStroke", BtnFrame)
-            s.Color = theme.Accent
-            s.Transparency = 0.9
-
-            local T = Instance.new("TextLabel")
-            T.Text = text
-            T.Size = UDim2.new(1, -60, 0, 30)
-            T.Position = UDim2.new(0, 12, 0, 5)
-            T.TextColor3 = theme.Text
-            T.Font = Enum.Font.GothamBold
-            T.TextSize = 14
-            T.TextXAlignment = Enum.TextXAlignment.Left
-            T.BackgroundTransparency = 1
-            T.Parent = BtnFrame
-
-            local D = Instance.new("TextLabel")
-            D.Text = desc or "Executa uma função"
-            D.Position = UDim2.new(0, 12, 0, 25)
-            D.Size = UDim2.new(1, -60, 0, 20)
-            D.TextColor3 = Color3.fromRGB(150,150,150)
-            D.Font = Enum.Font.Gotham
-            D.TextSize = 11
-            D.TextXAlignment = Enum.TextXAlignment.Left
-            D.BackgroundTransparency = 1
-            D.Parent = BtnFrame
-
-            local ExecIcon = Instance.new("ImageButton")
-            ExecIcon.Size = UDim2.new(0, 25, 0, 25)
-            ExecIcon.Position = UDim2.new(1, -35, 0.5, -12)
-            ExecIcon.Image = "rbxassetid://6031094678" -- Play icon
-            ExecIcon.ImageColor3 = theme.Accent
-            ExecIcon.BackgroundTransparency = 1
-            ExecIcon.Parent = BtnFrame
-
-            ExecIcon.MouseButton1Click:Connect(function()
-                QuickTween(ExecIcon, {0.1, Enum.EasingStyle.Back}, {Size = UDim2.new(0, 20, 0, 20)})
-                task.wait(0.1)
-                QuickTween(ExecIcon, {0.1, Enum.EasingStyle.Back}, {Size = UDim2.new(0, 25, 0, 25)})
-                pcall(callback)
-            end)
-        end
-
-        return Items
     end
-
-    -- Sistema de Arrastar (Draggable) Otimizado
-    local dragging, dragInput, dragStart, startPos
-    Main.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = Main.Position
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            local finalPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            Main.Position = finalPos
-            GlowFrame.Position = UDim2.new(finalPos.X.Scale, finalPos.X.Offset - 5, finalPos.Y.Scale, finalPos.Y.Offset - 5)
-        end
-    end)
-    Main.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-    end)
-
-    return UI
-end
-
--- [EXECUÇÃO]
-local Tsuo = TsuoLib:CreateWindow()
-
-local MainTab = Tsuo.CreateTab("Home", 0)
-local ScriptTab = Tsuo.CreateTab("Scripts", 0)
-local SettingsTab = Tsuo.CreateTab("Configurações", 0)
-
-MainTab:AddButton("Informações", "Usuário: " .. game.Players.LocalPlayer.Name, function()
-    print("Log: Usuário verificado.")
 end)
 
-ScriptTab:AddButton("Infinite Yield", "O melhor admin script do Roblox.", function()
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
+        updateInput(input)
+    end
 end)
 
-ScriptTab:AddButton("Dex Explorer", "Explorador de arquivos avançado.", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
-end)
+-- BOTÕES HEADER (MICROINTERAÇÕES)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleButton.Position = UDim2.new(1, -90, 0, 12.5)
+ToggleButton.BackgroundColor3 = CurrentTheme.Accent
+ToggleButton.BackgroundTransparency = 0.1
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Text = "⬇️"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextScaled = true
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Parent = Header
 
-SettingsTab:AddButton("Discord Link", "Copia o convite oficial.", function()
-    setclipboard("discord.gg/tsuo")
-end)
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 30)
+ToggleCorner.Parent = ToggleButton
+
+createPremiumGlow(ToggleButton)
+
+-- Config Button
+local ConfigButton = Instance.new("TextButton")
+ConfigButton.Size = UDim2.new(0, 60, 0, 60)
+ConfigButton.Position = UDim2.new(1, -165, 0, 12.5)
+ConfigButton.BackgroundColor3 = CurrentTheme.Secondary
+ConfigButton.BackgroundTransparency = 0.2
+ConfigButton.BorderSizePixel = 0
+ConfigButton.Text = "🎨"
+ConfigButton.TextColor3 = CurrentTheme.Text
+ConfigButton.TextScaled =

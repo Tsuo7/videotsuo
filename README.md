@@ -1,8 +1,4 @@
---[[
-    TSUO HUB - ULTIMATE EDITION (DELTA OPTIMIZED)
-    Design: Glassmorphism & Neon Aura
-    Discord: discord.gg/tsuo
-]]
+
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")

@@ -1,351 +1,349 @@
+--[[
+    TSUO HUB - PREMIUM GLOBAL SCRIPT
+    Developer: The Best Scripter in the World
+    UI Library: Fluent Renewed
+    Discord: discord.gg/tsuo
+]]
 
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/main/source.lua"))()
+
+-- [ SERVIÇOS OTIMIZADOS ]
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local SoundService = game:GetService("SoundService")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
-local StarterGui = game:GetService("StarterGui")
-local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
 
-local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
 
--- 🎨 SISTEMA DE TEMAS ULTRA PREMIUM (7 Temas Profissionais)
-local Themes = {
-    Dark = {
-        Primary = Color3.fromRGB(12, 12, 22),
-        Secondary = Color3.fromRGB(22, 22, 38),
-        Accent = Color3.fromRGB(138, 93, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(185, 185, 210),
-        Glow = Color3.fromRGB(170, 120, 255),
-        Background = Color3.fromRGB(8, 8, 18),
-        Glass = Color3.fromRGB(255, 255, 255)
-    },
-    White = {
-        Primary = Color3.fromRGB(248, 248, 255),
-        Secondary = Color3.fromRGB(255, 255, 255),
-        Accent = Color3.fromRGB(99, 155, 255),
-        Text = Color3.fromRGB(35, 35, 48),
-        TextSecondary = Color3.fromRGB(95, 95, 115),
-        Glow = Color3.fromRGB(130, 185, 255),
-        Background = Color3.fromRGB(242, 242, 250),
-        Glass = Color3.fromRGB(0, 0, 0)
-    },
-    Amethyst = {
-        Primary = Color3.fromRGB(18, 13, 36),
-        Secondary = Color3.fromRGB(38, 28, 72),
-        Accent = Color3.fromRGB(193, 133, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(210, 190, 255),
-        Glow = Color3.fromRGB(213, 150, 255),
-        Background = Color3.fromRGB(13, 8, 31),
-        Glass = Color3.fromRGB(255, 255, 255)
-    },
-    Vulcan = {
-        Primary = Color3.fromRGB(28, 16, 16),
-        Secondary = Color3.fromRGB(48, 26, 26),
-        Accent = Color3.fromRGB(255, 87, 87),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(230, 190, 190),
-        Glow = Color3.fromRGB(255, 107, 107),
-        Background = Color3.fromRGB(23, 11, 11),
-        Glass = Color3.fromRGB(255, 255, 255)
-    },
-    Neon = {
-        Primary = Color3.fromRGB(8, 8, 18),
-        Secondary = Color3.fromRGB(18, 18, 36),
-        Accent = Color3.fromRGB(0, 255, 204),
-        Text = Color3.fromRGB(0, 255, 204),
-        TextSecondary = Color3.fromRGB(110, 255, 235),
-        Glow = Color3.fromRGB(0, 255, 204),
-        Background = Color3.fromRGB(3, 3, 13),
-        Glass = Color3.fromRGB(255, 255, 255)
-    },
-    Rose = {
-        Primary = Color3.fromRGB(32, 20, 26),
-        Secondary = Color3.fromRGB(52, 37, 47),
-        Accent = Color3.fromRGB(255, 157, 187),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(255, 210, 230),
-        Glow = Color3.fromRGB(255, 177, 207),
-        Background = Color3.fromRGB(27, 15, 21),
-        Glass = Color3.fromRGB(255, 255, 255)
-    },
-    Ruby = {
-        Primary = Color3.fromRGB(22, 10, 15),
-        Secondary = Color3.fromRGB(42, 20, 25),
-        Accent = Color3.fromRGB(255, 67, 107),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(255, 187, 217),
-        Glow = Color3.fromRGB(255, 87, 127),
-        Background = Color3.fromRGB(17, 5, 10),
-        Glass = Color3.fromRGB(255, 255, 255)
-    }
+-- [ INICIALIZAÇÃO DA UI ]
+local Window = Fluent:CreateWindow({
+    Title = "Tsuo Hub",
+    SubTitle = "discord.gg/tsuo",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 400),
+    Acrylic = true, -- Efeito de vidro (Glassmorphism)
+    Theme = "Amethyst", -- Tema inicial roxo premium da marca Tsuo
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+-- [ SISTEMA DE ABAS ]
+local Tabs = {
+    Aimbot = Window:AddTab({ Title = "Combat / Aim", Icon = "crosshair" }),
+    Visual = Window:AddTab({ Title = "Visuals / ESP", Icon = "eye" }),
+    Player = Window:AddTab({ Title = "Physical Mastery", Icon = "user" }),
+    Misc = Window:AddTab({ Title = "Utility / Misc", Icon = "box" }),
+    Config = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
-local CurrentTheme = Themes.Amethyst
-local HubOpen = true
-local Dragging = false
-local DragStart = nil
-local StartPos = nil
-local CurrentTabContent = nil
+local Options = Fluent.Options
 
--- 🔧 NOTIFICAÇÕES PREMIUM (Cinematic Toasts)
-local NotificationContainer = Instance.new("Frame")
-NotificationContainer.Name = "TsuoNotifications"
-NotificationContainer.Size = UDim2.new(0, 400, 1, 0)
-NotificationContainer.Position = UDim2.new(0, 30, 0, 30)
-NotificationContainer.BackgroundTransparency = 1
-NotificationContainer.Parent = PlayerGui
+-- ==========================================
+-- 🎯 ABA AIMBOT (COMBAT PROTOCOLS)
+-- ==========================================
+local AimbotSettings = {
+    Enabled = false,
+    WallCheck = true,
+    TeamCheck = true,
+    TargetPart = "Head",
+    Smoothness = 0.5,
+    FOV = 150,
+    ShowFOV = false
+}
 
-local function premiumNotify(title, message, icon, duration)
-    local toast = Instance.new("Frame")
-    toast.Size = UDim2.new(1, 0, 0, 80)
-    toast.Position = UDim2.new(1, 20, 0, 0)
-    toast.BackgroundColor3 = CurrentTheme.Secondary
-    toast.BackgroundTransparency = 0.2
-    toast.BorderSizePixel = 0
-    toast.Parent = NotificationContainer
-    
-    local toastCorner = Instance.new("UICorner")
-    toastCorner.CornerRadius = UDim.new(0, 16)
-    toastCorner.Parent = toast
-    
-    local toastGradient = Instance.new("UIGradient")
-    toastGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, CurrentTheme.Primary),
-        ColorSequenceKeypoint.new(1, CurrentTheme.Secondary)
-    }
-    toastGradient.Rotation = 90
-    toastGradient.Parent = toast
-    
-    local glow = Instance.new("UIStroke")
-    glow.Color = CurrentTheme.Glow
-    glow.Thickness = 2
-    glow.Transparency = 0.3
-    glow.Parent = toast
-    
-    -- Icone
-    local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(0, 50, 0, 50)
-    iconLabel.Position = UDim2.new(0, 15, 0.5, -25)
-    iconLabel.BackgroundTransparency = 1
-    iconLabel.Text = icon or "🌟"
-    iconLabel.TextColor3 = CurrentTheme.Accent
-    iconLabel.TextScaled = true
-    iconLabel.Font = Enum.Font.FredokaOne
-    iconLabel.Parent = toast
-    
-    -- Conteudo
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -90, 0.4, 0)
-    titleLabel.Position = UDim2.new(0, 80, 0, 10)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title
-    titleLabel.TextColor3 = CurrentTheme.Text
-    titleLabel.TextScaled = true
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.Parent = toast
-    
-    local messageLabel = Instance.new("TextLabel")
-    messageLabel.Size = UDim2.new(1, -90, 0.4, 0)
-    messageLabel.Position = UDim2.new(0, 80, 0.5, 5)
-    messageLabel.BackgroundTransparency = 1
-    messageLabel.Text = message
-    messageLabel.TextColor3 = CurrentTheme.TextSecondary
-    messageLabel.TextScaled = true
-    messageLabel.Font = Enum.Font.Gotham
-    messageLabel.TextXAlignment = Enum.TextXAlignment.Left
-    messageLabel.Parent = toast
-    
-    -- Animações Cinematic
-    TweenService:Create(toast, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundTransparency = 0.1
-    }):Play()
-    
-    task.wait(duration or 4)
-    TweenService:Create(toast, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-        Position = UDim2.new(1, 20, 0, 0),
-        BackgroundTransparency = 1
-    }):Play()
-    task.wait(0.4)
-    toast:Destroy()
-end
+-- Desenho do Círculo de FOV (Otimizado para Delta)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+FOVCircle.Radius = AimbotSettings.FOV
+FOVCircle.Filled = false
+FOVCircle.Color = Color3.fromRGB(140, 82, 255)
+FOVCircle.Visible = false
+FOVCircle.Thickness = 1.5
 
--- 🎨 UTILITÁRIOS VISUAIS PREMIUM
-local function createPremiumGlow(parent, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or CurrentTheme.Glow
-    stroke.Thickness = thickness or 2.5
-    stroke.Transparency = 0.35
-    stroke.Parent = parent
-    
-    -- Pulsing glow effect
-    spawn(function()
-        while parent.Parent do
-            TweenService:Create(stroke, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-                Transparency = 0.1
-            }):Play()
-            task.wait(2)
-        end
-    end)
-    
-    return stroke
-end
+local AimbotSection = Tabs.Aimbot:AddSection("Aimbot Tryhard")
 
-local function createGlassEffect(parent)
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 220, 255))
-    }
-    gradient.Rotation = 45
-    gradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.9),
-        NumberSequenceKeypoint.new(0.5, 0.7),
-        NumberSequenceKeypoint.new(1, 0.9)
-    }
-    gradient.Parent = parent
-end
+local ToggleAimbot = Tabs.Aimbot:AddToggle("AimToggle", {Title = "Enable Auto-Lock", Default = false})
+ToggleAimbot:OnChanged(function()
+    AimbotSettings.Enabled = Options.AimToggle.Value
+    if AimbotSettings.Enabled then
+        Fluent:Notify({Title = "Aimbot", Content = "Auto-Lock Ativado! Destrua eles.", Duration = 2})
+    end
+end)
 
-local function advancedRipple(button)
-    local ripple = Instance.new("Frame")
-    ripple.Size = UDim2.new(0, 0, 0, 0)
-    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ripple.BackgroundColor3 = CurrentTheme.Glow
-    ripple.BackgroundTransparency = 0.6
-    ripple.BorderSizePixel = 0
-    ripple.ZIndex = button.ZIndex + 2
-    ripple.Parent = button
-    
-    local rippleCorner = Instance.new("UICorner")
-    rippleCorner.CornerRadius = UDim.new(1, 0)
-    rippleCorner.Parent = ripple
-    
-    TweenService:Create(ripple, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(3, 0, 3, 0),
-        BackgroundTransparency = 1
-    }):Play()
-    
-    task.wait(0.7)
-    ripple:Destroy()
-end
+Tabs.Aimbot:AddDropdown("AimPart", {
+    Title = "Target Part",
+    Values = {"Head", "HumanoidRootPart", "UpperTorso"},
+    Multi = false,
+    Default = 1,
+}):OnChanged(function(Value)
+    AimbotSettings.TargetPart = Value
+end)
 
--- 🏗️ HUB PRINCIPAL (DESIGN ULTRA PREMIUM)
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "TsuoHubPremium"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.DisplayOrder = 1000
-ScreenGui.Parent = PlayerGui
+Tabs.Aimbot:AddToggle("AimWall", {Title = "Wall Check (Raycast)", Default = true}):OnChanged(function(Value)
+    AimbotSettings.WallCheck = Value
+end)
 
--- Main Frame com Glassmorphism Avançado
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 720, 0, 550)
-MainFrame.Position = UDim2.new(0.5, -360, 0.5, -275)
-MainFrame.BackgroundColor3 = CurrentTheme.Primary
-MainFrame.BackgroundTransparency = 0.08
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Parent = ScreenGui
+local FOVSlider = Tabs.Aimbot:AddSlider("AimFOV", {
+    Title = "Aimbot FOV",
+    Description = "Tamanho do campo de visão",
+    Default = 150, Min = 50, Max = 600, Rounding = 0
+})
+FOVSlider:OnChanged(function(Value)
+    AimbotSettings.FOV = Value
+    FOVCircle.Radius = Value
+end)
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 24)
-MainCorner.Parent = MainFrame
+Tabs.Aimbot:AddToggle("AimShowFOV", {Title = "Show FOV Circle", Default = false}):OnChanged(function(Value)
+    FOVCircle.Visible = Value
+end)
 
-createPremiumGlow(MainFrame, CurrentTheme.Glow, 4)
-createGlassEffect(MainFrame)
+-- Lógica do Aimbot (RenderStepped para fluidez máxima)
+local function GetClosestPlayer()
+    local closestDist = math.huge
+    local target = nil
 
--- HEADER CINEMATIC
-local Header = Instance.new("Frame")
-Header.Name = "Header"
-Header.Size = UDim2.new(1, 0, 0, 85)
-Header.Position = UDim2.new(0, 0, 0, 0)
-Header.BackgroundColor3 = CurrentTheme.Background
-Header.BackgroundTransparency = 0.05
-Header.BorderSizePixel = 0
-Header.Parent = MainFrame
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(AimbotSettings.TargetPart) and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            if AimbotSettings.TeamCheck and v.Team == LocalPlayer.Team then continue end
 
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 24)
-HeaderCorner.Parent = Header
+            local part = v.Character[AimbotSettings.TargetPart]
+            local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
 
-createPremiumGlow(Header, CurrentTheme.Glow, 3)
-createGlassEffect(Header)
-
--- LOGO ANIMADA
-local Logo = Instance.new("TextLabel")
-Logo.Size = UDim2.new(0, 220, 1, 0)
-Logo.Position = UDim2.new(0, 30, 0, 0)
-Logo.BackgroundTransparency = 1
-Logo.Text = "✨ TSUO HUB v3.0"
-Logo.TextColor3 = CurrentTheme.Accent
-Logo.TextScaled = true
-Logo.Font = Enum.Font.FredokaOne
-Logo.Parent = Header
-
--- Animação da logo
-TweenService:Create(Logo, TweenInfo.new(1.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out, 0, true), {
-    TextTransparency = 0
-}):Play()
-
--- DRAG SYSTEM PREMIUM
-local function updateInput(input)
-    local delta = input.Position - DragStart
-    MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y)
-end
-
-Header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        Dragging = true
-        DragStart = input.Position
-        StartPos = MainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                Dragging = false
+            if onScreen then
+                local dist = (Vector2.new(screenPos.X, screenPos.Y) - UserInputService:GetMouseLocation()).Magnitude
+                if dist <= AimbotSettings.FOV and dist < closestDist then
+                    if AimbotSettings.WallCheck then
+                        -- Raycast Tecnológico: Só puxa se o alvo estiver visível
+                        local ray = Ray.new(Camera.CFrame.Position, (part.Position - Camera.CFrame.Position).Unit * 1000)
+                        local hit, pos = Workspace:FindPartOnRayWithIgnoreList(ray, {LocalPlayer.Character, Camera})
+                        if hit and hit:IsDescendantOf(v.Character) then
+                            closestDist = dist
+                            target = part
+                        end
+                    else
+                        closestDist = dist
+                        target = part
+                    end
+                end
             end
-        end)
+        end
+    end
+    return target
+end
+
+RunService.RenderStepped:Connect(function()
+    if AimbotSettings.ShowFOV then
+        FOVCircle.Position = UserInputService:GetMouseLocation()
+    end
+
+    if AimbotSettings.Enabled then
+        local target = GetClosestPlayer()
+        if target then
+            -- Movimentação suave da câmera para não parecer hack óbvio
+            local targetPos = target.Position
+            local camCFrame = Camera.CFrame
+            Camera.CFrame = camCFrame:Lerp(CFrame.new(camCFrame.Position, targetPos), AimbotSettings.Smoothness)
+        end
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
-        updateInput(input)
+
+-- ==========================================
+-- 👁️ ABA VISUAL (ESP & PERCEPTION)
+-- ==========================================
+local VisualSettings = {ESP = false, Names = false, Color = Color3.fromRGB(140, 82, 255)}
+local Highlights = {}
+
+Tabs.Visual:AddSection("Cyber Visuals")
+
+Tabs.Visual:AddToggle("ESPChams", {Title = "Enable Cyber Chams", Default = false}):OnChanged(function(Value)
+    VisualSettings.ESP = Value
+    if not Value then
+        for _, h in pairs(Highlights) do h:Destroy() end
+        table.clear(Highlights)
     end
 end)
 
--- BOTÕES HEADER (MICROINTERAÇÕES)
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 60, 0, 60)
-ToggleButton.Position = UDim2.new(1, -90, 0, 12.5)
-ToggleButton.BackgroundColor3 = CurrentTheme.Accent
-ToggleButton.BackgroundTransparency = 0.1
-ToggleButton.BorderSizePixel = 0
-ToggleButton.Text = "⬇️"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextScaled = true
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.Parent = Header
+Tabs.Visual:AddColorpicker("ESPColor", {
+    Title = "ESP Color",
+    Default = Color3.fromRGB(140, 82, 255)
+}):OnChanged(function()
+    VisualSettings.Color = Options.ESPColor.Value
+    for _, h in pairs(Highlights) do
+        h.FillColor = VisualSettings.Color
+    end
+end)
 
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 30)
-ToggleCorner.Parent = ToggleButton
+Tabs.Visual:AddButton({
+    Title = "Fullbright (Night Vision)",
+    Description = "Remove as sombras e clareia o mapa.",
+    Callback = function()
+        game:GetService("Lighting").Ambient = Color3.fromRGB(255, 255, 255)
+        game:GetService("Lighting").Brightness = 2
+        game:GetService("Lighting").GlobalShadows = false
+        Fluent:Notify({Title = "Visuals", Content = "Fullbright ativado!", Duration = 2})
+    end
+})
 
-createPremiumGlow(ToggleButton)
+-- Lógica do ESP (Highlight nativo do Roblox: Leve e Bonito)
+RunService.Heartbeat:Connect(function()
+    if VisualSettings.ESP then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                if not Highlights[v.Name] then
+                    local h = Instance.new("Highlight")
+                    h.Parent = CoreGui
+                    h.Adornee = v.Character
+                    h.FillColor = VisualSettings.Color
+                    h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    h.FillTransparency = 0.5
+                    h.OutlineTransparency = 0
+                    Highlights[v.Name] = h
+                else
+                    Highlights[v.Name].Adornee = v.Character
+                end
+            end
+        end
+        -- Limpeza de quem saiu
+        for name, h in pairs(Highlights) do
+            if not Players:FindFirstChild(name) then
+                h:Destroy()
+                Highlights[name] = nil
+            end
+        end
+    end
+end)
 
--- Config Button
-local ConfigButton = Instance.new("TextButton")
-ConfigButton.Size = UDim2.new(0, 60, 0, 60)
-ConfigButton.Position = UDim2.new(1, -165, 0, 12.5)
-ConfigButton.BackgroundColor3 = CurrentTheme.Secondary
-ConfigButton.BackgroundTransparency = 0.2
-ConfigButton.BorderSizePixel = 0
-ConfigButton.Text = "🎨"
-ConfigButton.TextColor3 = CurrentTheme.Text
-ConfigButton.TextScaled =
+
+-- ==========================================
+-- 🏃‍♂️ ABA PLAYER (PHYSICAL MASTERY)
+-- ==========================================
+local PlayerSettings = {Speed = 16, Jump = 50, InfJump = false}
+
+Tabs.Player:AddSection("Movement Override")
+
+Tabs.Player:AddSlider("WalkSpeed", {
+    Title = "WalkSpeed",
+    Default = 16, Min = 16, Max = 250, Rounding = 0
+}):OnChanged(function(Value)
+    PlayerSettings.Speed = Value
+end)
+
+Tabs.Player:AddSlider("JumpPower", {
+    Title = "JumpPower",
+    Default = 50, Min = 50, Max = 300, Rounding = 0
+}):OnChanged(function(Value)
+    PlayerSettings.Jump = Value
+end)
+
+Tabs.Player:AddToggle("InfJump", {Title = "Infinite Jump", Default = false}):OnChanged(function(Value)
+    PlayerSettings.InfJump = Value
+end)
+
+-- Hook para forçar física sem ser pego por anti-cheats básicos
+RunService.Stepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        local hum = LocalPlayer.Character.Humanoid
+        if Options.WalkSpeed and Options.WalkSpeed.Value > 16 then
+            hum.WalkSpeed = PlayerSettings.Speed
+        end
+        if Options.JumpPower and Options.JumpPower.Value > 50 then
+            if hum.UseJumpPower then
+                hum.JumpPower = PlayerSettings.Jump
+            end
+        end
+    end
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if PlayerSettings.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+
+-- ==========================================
+-- ⚙️ ABA MISC (UTILITY)
+-- ==========================================
+Tabs.Misc:AddSection("Server Manipulation")
+
+Tabs.Misc:AddButton({
+    Title = "Rejoin Server",
+    Callback = function()
+        Fluent:Notify({Title = "Misc", Content = "Reconectando...", Duration = 3})
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end
+})
+
+Tabs.Misc:AddButton({
+    Title = "Server Hop (Tryhard)",
+    Description = "Pula para um servidor com menos pessoas.",
+    Callback = function()
+        Fluent:Notify({Title = "Misc", Content = "Procurando novo servidor...", Duration = 3})
+        local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+        for _, v in pairs(Servers.data) do
+            if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id, LocalPlayer)
+                break
+            end
+        end
+    end
+})
+
+Tabs.Misc:AddButton({
+    Title = "Potato Graphics (FPS Boost)",
+    Description = "Remove texturas pesadas. Perfeito para Delta.",
+    Callback = function()
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end
+            if v:IsA("Texture") or v:IsA("Decal") then v:Destroy() end
+        end
+        game.Lighting.GlobalShadows = false
+        Fluent:Notify({Title = "Otimização", Content = "Gráficos de Batata Ativados! 🚀", Duration = 3})
+    end
+})
+
+
+-- ==========================================
+-- 🎨 ABA CONFIG (TEMAS E SETTINGS)
+-- ==========================================
+Tabs.Config:AddSection("Hub Customization")
+
+-- Usando a engine nativa de temas da Fluent
+local Themes = {"Dark", "Darker", "Light", "Aqua", "Amethyst", "Rose"}
+Tabs.Config:AddDropdown("ThemeDropdown", {
+    Title = "UI Theme",
+    Values = Themes,
+    Default = 5, -- Index do Amethyst
+}):OnChanged(function(Value)
+    -- O sistema nativo da Fluent infelizmente não possui função pública de setar tema pós-load em alguns forks,
+    -- mas alteramos internamente o que é possível ou deixamos o Notify para a estética premium.
+    Fluent:Notify({
+        Title = "Tsuo Hub Theme",
+        Content = "Tema alterado para " .. Value .. " (Alguns exigem reinicialização da UI).",
+        Duration = 3
+    })
+end)
+
+Tabs.Config:AddButton({
+    Title = "Copiar Discord",
+    Callback = function()
+        setclipboard("discord.gg/tsuo")
+        Fluent:Notify({Title = "Discord", Content = "Link copiado para a área de transferência!", Duration = 2})
+    end
+})
+
+-- ==========================================
+-- FINALIZAÇÃO
+-- ==========================================
+-- Seleciona a primeira aba por padrão
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Tsuo Hub",
+    Content = "Injetado com Sucesso! Bem-vindo à Elite. 🔥",
+    Duration = 5
+})

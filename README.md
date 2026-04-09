@@ -1,9 +1,3 @@
---[[
-    🌟 TSUO HUB v3.0 - ULTIMATE PREMIUM EDITION
-    Discord: discord.gg/tsuo
-    Design: Glassmorphism 2.0 | Advanced Neon | Cinematic Animations
-    Performance: Ultra Optimized | 120FPS | Zero Lag
-]]
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
